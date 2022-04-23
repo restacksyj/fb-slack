@@ -38,10 +38,6 @@ const app = new App({
   console.log("⚡️ Bolt app is running!");
 })();
 
-// app.message("hello", async ({message, say}) => {
-//     console.log("message ", message);
-//     await say(`Hey there <@${message.user}>!`);
-// })
 
 app.command("/hi", async ({ command, ack, respond, payload }) => {
   // Acknowledge command request
@@ -50,10 +46,6 @@ app.command("/hi", async ({ command, ack, respond, payload }) => {
   await respond(`${payload.user_name}`);
 });
 
-// app.event('app_home_opened', async({event, say}) => {
-//     console.log("event ", event);
-//     await say(`Hey there`);
-// })
 app.event("app_home_opened", async ({ event, client, logger, say }) => {
   try {
     // console.log("event is ", event);
@@ -85,8 +77,6 @@ app.event("app_home_opened", async ({ event, client, logger, say }) => {
         ],
       },
     });
-
-    await showFacilities(say);
 
     logger.info(result);
   } catch (error) {
@@ -184,52 +174,10 @@ app.action("cafe_selected", async ({ body, ack, say }) => {
 });
 
 // Listens to incoming messages that contain "hello"
-app.message("hello", async ({ message, say }) => {
+app.message("Hello", async ({ message, say }) => {
   // say() sends a message to the channel where the event was triggered
-  await say({
-    blocks: [
-      {
-        type: "section",
-        block_id: "cafeteriaSection",
-        text: {
-          type: "mrkdwn",
-          text: "Pick a cafeteria from the dropdown list",
-        },
-        accessory: {
-          action_id: "cafeteria_selected",
-          type: "static_select",
-          placeholder: {
-            type: "plain_text",
-            text: "Select an cafeteria",
-          },
-          options: [
-            {
-              text: {
-                type: "plain_text",
-                text: "Chennai Cafeteria",
-              },
-              value: "value-0",
-            },
-            {
-              text: {
-                type: "plain_text",
-                text: "Mumbai Cafeteria",
-              },
-              value: "value-1",
-            },
-          ],
-        },
-      },
-    ],
-    text: `Hey there <@${message.user}>!`,
-  });
+  await showFacilities(say);
 });
-
-// app.action("button_click", async ({ body, ack, say }) => {
-//   // Acknowledge the action
-//   await ack();
-//   await say(`<@${body.user.id}> clicked the button`);
-// });
 
 app.action("cafeteria_selected", async ({ body, ack, say }) => {
   // Acknowledge the action
@@ -239,16 +187,39 @@ app.action("cafeteria_selected", async ({ body, ack, say }) => {
 });
 
 app.action("facility_selected", async ({ body, ack, say, client }) => {
-  console.log("fs");
   await ack();
+  console.log("fs");
   await showConferenceRooms(client, body);
 });
 
-app.action("static_select-action", async ({ body, ack, say, client }) => {
-  console.log("duration", body);
+app.action("starttimepicker-action", async ({ body, ack, say, client }) => {
   await ack();
-
-  // await showConferenceRooms(client, body);
+  console.log("start time");
 });
 
-// app.action()
+app.action("datepicker-action", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("date picked");
+});
+
+app.action("conferenceroom-action", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("cr selected ");
+});
+
+app.action("endtimepicker-action", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("end date picked");
+});
+
+app.view({callback_id:"subview",type:"view_submission"}, async ({ ack, body }) => {
+  console.log("view submission body");
+  await ack();
+  return { "response_action": "clear" }
+});
+
+app.view({callback_id:"subview",type:"view_closed"}, async ({ ack, body }) => {
+  console.log("view closed body");
+  await ack();
+  return { "response_action": "clear" }
+});
