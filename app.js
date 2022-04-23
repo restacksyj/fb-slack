@@ -2,13 +2,13 @@ const { App, ExpressReceiver } = require("@slack/bolt");
 const apis = require("./apis");
 const { showConferenceRooms } = require("./conferece");
 const { showFacilities } = require("./facilities");
-// const express = require('express')
-require("dotenv").config();
-// console.log(process.env);
+const { showAvailableEndTime } = require("./showAvailableEndTime");
+const { showAvailableStartTime } = require("./showAvailableStartTime");
+const { showDatePicker } = require("./showDatePicker");
 
-// const receiver = new ExpressReceiver({
-//     signingSecret: process.env.SIGNING_SECRET,
-// });
+require("dotenv").config();
+
+let currentUserData = {};
 
 const app = new App({
   token: process.env.BOT_TOKEN,
@@ -22,22 +22,12 @@ const app = new App({
   port: process.env.PORT || 9002,
 });
 
-// app.use(receiver.app)
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-// // Listens to incoming messages that contain "hello"
-// app.message("hello", async ({ message, say }) => {
-//   await say(`Hello, <@${message.user}>`);
-// });
-
 (async () => {
   // Start your app
   await app.start();
 
   console.log("⚡️ Bolt app is running!");
 })();
-
 
 app.command("/hi", async ({ command, ack, respond, payload }) => {
   // Acknowledge command request
@@ -48,8 +38,6 @@ app.command("/hi", async ({ command, ack, respond, payload }) => {
 
 app.event("app_home_opened", async ({ event, client, logger, say }) => {
   try {
-    // console.log("event is ", event);
-    // Call views.publish with the built-in client
     const result = await client.views.publish({
       // Use the user ID associated with the event
       user_id: event.user,
@@ -160,13 +148,6 @@ app.command("/cafe", async ({ ack, body, client, logger }) => {
   }
 });
 
-// app.action(
-//     { action_id: 'app-home-nav-completed', type: 'block_actions' },
-//     async({ body, ack, client }) => {
-
-//     },
-// );
-
 app.action("cafe_selected", async ({ body, ack, say }) => {
   // Acknowledge the action
   await ack();
@@ -179,6 +160,54 @@ app.message("Hello", async ({ message, say }) => {
   await showFacilities(say);
 });
 
+app.action("facility_selected", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("f s");
+  currentUserData[body.user.id] = {};
+  await showConferenceRooms(say);
+});
+
+app.action("cr_selected", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("f s", body);
+  currentUserData[body.user.id] = {};
+  currentUserData[body.user.id].conferenceRoomId =
+    body.actions[0].selected_option.value;
+  currentUserData[body.user.id].username = body.user.username;
+  await showDatePicker(say);
+});
+
+app.action("date_selected", async ({ body, ack, say, client }) => {
+  await ack();
+  currentUserData[body.user.id].date = new Date(body.actions[0].selected_date);
+  await showAvailableStartTime(say);
+});
+
+app.action("start_selected", async ({ body, ack, say, client }) => {
+  await ack();
+  console.log("start time ");
+  console.log("date selected", JSON.stringify(body.actions));
+  currentUserData[body.user.id].startTime = body.actions[0].selected_time;
+  console.log("cd ", currentUserData);
+  await showAvailableEndTime(say);
+});
+
+app.action("end_selected", async ({ body, ack, say, client }) => {
+  await ack();
+  currentUserData[body.user.id].endTime = body.actions[0].selected_time;
+  console.log("end time , do booking", currentUserData);
+
+  //book conference
+  const res = await apis.bookConference(currentUserData[body.user.id]);
+  console.log("res ", res);
+
+  delete currentUserData[body.user.id];
+
+  await say("Booking Created Succesfully");
+
+  // await showAvailableEndTime(say);
+});
+
 app.action("cafeteria_selected", async ({ body, ack, say }) => {
   // Acknowledge the action
   await ack();
@@ -186,40 +215,17 @@ app.action("cafeteria_selected", async ({ body, ack, say }) => {
   await say(`<@${body.user.id}> clicked the button`);
 });
 
-app.action("facility_selected", async ({ body, ack, say, client }) => {
-  await ack();
-  console.log("fs");
-  await showConferenceRooms(client, body);
-});
+app.view(
+  { callback_id: "subview", type: "view_submission" },
+  async ({ ack, body }) => {
+    console.log("view submission body");
+    await ack();
+    return { response_action: "clear" };
+  }
+);
 
-app.action("starttimepicker-action", async ({ body, ack, say, client }) => {
-  await ack();
-  console.log("start time");
-});
-
-app.action("datepicker-action", async ({ body, ack, say, client }) => {
-  await ack();
-  console.log("date picked");
-});
-
-app.action("conferenceroom-action", async ({ body, ack, say, client }) => {
-  await ack();
-  console.log("cr selected ");
-});
-
-app.action("endtimepicker-action", async ({ body, ack, say, client }) => {
-  await ack();
-  console.log("end date picked");
-});
-
-app.view({callback_id:"subview",type:"view_submission"}, async ({ ack, body }) => {
-  console.log("view submission body");
-  await ack();
-  return { "response_action": "clear" }
-});
-
-app.view({callback_id:"subview",type:"view_closed"}, async ({ ack, body }) => {
+app.view({ type: "view_closed" }, async ({ ack, body }) => {
   console.log("view closed body");
   await ack();
-  return { "response_action": "clear" }
+  return { response_action: "clear" };
 });

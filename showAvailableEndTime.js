@@ -1,6 +1,6 @@
 const apis = require("./apis");
 
-exports.showConferenceRooms = async (say) => {
+exports.showAvailableEndTime = async (say) => {
   //get data
   const resp = await apis.getConferences();
   let roomOptions = [];
@@ -8,34 +8,35 @@ exports.showConferenceRooms = async (say) => {
     roomOptions.push({
       text: {
         type: "plain_text",
-        text: `Room No ${cr.roomNumber}, Floor ${cr.floorNumber}, Building ${cr.buildingName}, City ${cr.city}`,
+        text: `time here`,
         emoji: true,
       },
       value: cr._id,
     });
   });
 
+  const currentDate = new Date();
   const blockData = {
     blocks: [
       {
         type: "section",
-        block_id: "crSection",
         text: {
           type: "mrkdwn",
-          text: "Pick a Conference Room you want book",
+          text: "End Time",
         },
         accessory: {
-          action_id: "cr_selected",
-          type: "static_select",
+          type: "timepicker",
+          initial_time: "12:00",
           placeholder: {
             type: "plain_text",
-            text: "Select an Conference Room",
+            text: "Select End time",
+            emoji: true,
           },
-          options: roomOptions,
+          action_id: "end_selected",
         },
       },
     ],
-    text: `Available Conference Rooms`,
+    text: `Available End Time`,
   };
 
   await say(blockData);
