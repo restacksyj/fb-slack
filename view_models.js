@@ -31,7 +31,7 @@ const conference_view = {
                 "type": "static_select",
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Select an item",
+                    "text": "Select room",
                     "emoji": true
                 },
                 "options": [
