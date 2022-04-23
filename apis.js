@@ -18,21 +18,22 @@ async function getCafeterias(){
 }
 
 async function getConferences(){
-    const res = await axios.get(`${base_url}/conference-room`)
+    const url = `${base_url}/conference_room`
+    const res = await axios.get(url)
     return res.data
 }
 
 async function bookConference(data){
-    const res = await axios.post(`${base_url}/conference-room/book`,data)
+    const res = await axios.post(`${base_url}/conference_room/book`,data)
     return res.data 
 }
 
 async function getBookedSlots(){
-    const res = await axios.get(`${base_url}/conference-room/booked/slots`, data)
+    const res = await axios.get(`${base_url}/conference_room/booked/slots`, data)
     return res.data
 }
 
 async function bookTT() {
-    const res = await axios.get(`${base_url}/conference-room/booked/slots`, data)
+    const res = await axios.get(`${base_url}/conference_room/booked/slots`, data)
     return res.data
 }

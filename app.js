@@ -1,5 +1,7 @@
 const { App, ExpressReceiver } = require("@slack/bolt");
 const apis = require("./apis");
+const { showConferenceRooms } = require("./conferece");
+const { showFacilities } = require("./facilities");
 // const express = require('express')
 require("dotenv").config();
 // console.log(process.env);
@@ -52,7 +54,7 @@ app.command("/hi", async ({ command, ack, respond, payload }) => {
 //     console.log("event ", event);
 //     await say(`Hey there`);
 // })
-app.event("app_home_opened", async ({ event, client, logger }) => {
+app.event("app_home_opened", async ({ event, client, logger, say }) => {
   try {
     // console.log("event is ", event);
     // Call views.publish with the built-in client
@@ -83,6 +85,8 @@ app.event("app_home_opened", async ({ event, client, logger }) => {
         ],
       },
     });
+
+    await showFacilities(say);
 
     logger.info(result);
   } catch (error) {
@@ -234,12 +238,17 @@ app.action("cafeteria_selected", async ({ body, ack, say }) => {
   await say(`<@${body.user.id}> clicked the button`);
 });
 
-//cafe popup
-//cafe selected
-//cafe status
-//cafe book
+app.action("facility_selected", async ({ body, ack, say, client }) => {
+  console.log("fs");
+  await ack();
+  await showConferenceRooms(client, body);
+});
 
-//cnf status
-//cnf 1 sems empty wanna book
-//book cnf 1
-//done time slot
+app.action("static_select-action", async ({ body, ack, say, client }) => {
+  console.log("duration", body);
+  await ack();
+
+  // await showConferenceRooms(client, body);
+});
+
+// app.action()

@@ -1,9 +1,4 @@
-module.exports = {
-    conference_view
-}
-
-
-const conference_view = {
+let conference_view = {
     "type": "modal",
     "title": {
         "type": "plain_text",
@@ -166,4 +161,8 @@ const conference_view = {
             }
         }
     ]
+}
+
+module.exports = {
+    conference_view
 }
